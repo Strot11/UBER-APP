@@ -1,6 +1,10 @@
 import React from 'react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link,useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import {UserDataContext} from '../Context/UserContext';
+
+
 
 const UserSignUp = () =>{
    const [email,setemail] = useState('');
@@ -9,16 +13,30 @@ const UserSignUp = () =>{
         const [LastName,setLastName] = useState('');
         const [userData,setuserData] = useState({});
 
+        const navigate = useNavigate();
+
+        const {user,setUser} = React.useContext(UserDataContext);
+
         const submitHandler =async(e)=>{
            e.preventDefault();
-           setuserData({
-            fullName:{
-              FirstName:FirstName,
-            LastName:LastName
+           const newUser = {
+            fullname:{
+              firstname:FirstName,
+            lastname:LastName
             },
             email:email,
             password:password
-           })
+           }
+      console.log(`${import.meta.env.VITE_BASE_URL}/users/register`);
+
+const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/users/register`,newUser);
+if(response.status === 201){
+  const data = response.data;
+  console.log(data);
+  setUser(data.user); // onplace of user lets depend on token because if after logging in user reloads  then you will simply gets logged out as data get lost from context api. Thats why we rely on token more.
+  localStorage.setItem('token',data.token); 
+  navigate('/home')
+}
            setemail('');
            setpassword('');
            setFirstName('');
@@ -40,7 +58,7 @@ const UserSignUp = () =>{
 
       <h3 className='text-lg mb-2 font-medium'>Enter Password</h3>
       <input className='mb-7 bg-[#eeeeee] rounded px-4 py-2 border-2 w-full text-lg placeholder:text-base' type="password" required placeholder='password' value={password} onChange={(e)=>setpassword(e.target.value)} />
-      <button className='mb-7 bg-[#111] text-white font-semibold rounded px-4 py-2 w-full text-lg'>Login</button>
+      <button className='mb-7 bg-[#111] text-white font-semibold rounded px-4 py-2 w-full text-lg'>Create Account</button>
       </form>
      <p className='text-center mb-1'>Already Have Account? <Link to='/login' className="text-blue-600">Login here</Link></p>
   
